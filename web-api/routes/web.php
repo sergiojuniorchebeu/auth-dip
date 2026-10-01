@@ -16,6 +16,7 @@ Route::get('/admin/login', [AdminWebController::class, 'loginForm'])->name('admi
 Route::post('/admin/login', [AdminWebController::class, 'login'])->name('admin.login.store');
 Route::post('/admin/logout', [AdminWebController::class, 'logout'])->name('admin.logout');
 Route::get('/admin', [AdminWebController::class, 'dashboard'])->name('admin.dashboard');
+Route::get('/admin/requests/{verificationRequest}', [AdminWebController::class, 'showRequest'])->name('admin.requests.show');
 Route::patch('/admin/requests/{verificationRequest}/decision', [AdminWebController::class, 'decide'])->name('admin.requests.decide');
 Route::get('/admin/requests/{verificationRequest}/documents/{document}', [AdminWebController::class, 'downloadRequestDocument'])->name('admin.requests.document');
 Route::get('/admin/diplomas/{diploma}/documents/{document}', [AdminWebController::class, 'downloadDiplomaDocument'])->name('admin.diplomas.document');

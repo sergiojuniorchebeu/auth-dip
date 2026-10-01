@@ -19,3 +19,14 @@
     * { border-radius: 10px; }
     body { background: #f8fbfe; color: #24415d; }
 }
+
+@layer components {
+    /* Le bleu primaire est réservé aux actions : le bleu nuit reste une couleur de structure. */
+    button.bg-auth-ink, a.bg-auth-ink {
+        background-color: var(--color-auth-blue) !important;
+        color: var(--color-auth-ink) !important;
+    }
+    button.bg-auth-ink:hover, a.bg-auth-ink:hover {
+        background-color: color-mix(in srgb, var(--color-auth-blue) 86%, var(--color-auth-ink)) !important;
+    }
+}

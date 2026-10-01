@@ -20,8 +20,8 @@ class AdminWebController extends Controller
 
     public function webLogin(Request $request)
     {
-        $data = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string'], 'role' => ['required', 'in:admin,employer']]);
-        $user = User::where('email', $data['email'])->where('role', $data['role'])->first();
+        $data = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
+        $user = User::where('email', $data['email'])->first();
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             return back()->withErrors(['email' => 'Adresse e-mail ou mot de passe incorrect.'])->withInput();
         }
@@ -30,6 +30,7 @@ class AdminWebController extends Controller
         }
         $request->session()->regenerate();
         $request->session()->put('web_user_id', $user->id);
+        $request->session()->put('web_role', $user->role);
         if ($user->role === 'admin') {
             $request->session()->put('admin_id', $user->id);
             return redirect()->route('admin.dashboard');
@@ -122,6 +123,14 @@ class AdminWebController extends Controller
                 return ['label' => $date->format('M'), 'value' => VerificationRequest::whereBetween('created_at', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])->count()];
             })->values(),
             'statusDistribution' => collect(['pending' => 'En attente', 'validated' => 'Validées', 'rejected' => 'Rejetées'])->mapWithKeys(fn ($label, $status) => [$status => ['label' => $label, 'value' => VerificationRequest::where('status', $status)->count()]]),
+        ]);
+    }
+
+    public function showRequest(Request $request, VerificationRequest $verificationRequest)
+    {
+        $this->guard($request);
+        return view('admin.request-show', [
+            'verificationRequest' => $verificationRequest->load(['employer', 'diploma', 'processor']),
         ]);
     }
 
