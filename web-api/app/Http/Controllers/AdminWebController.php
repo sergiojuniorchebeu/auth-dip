@@ -50,13 +50,14 @@ class AdminWebController extends Controller
         $user = User::whereKey($request->session()->get('employer_id'))->where('role', 'employer')->where('registration_status', 'approved')->firstOrFail();
         $data = $request->validate([
             'holder_name' => ['required', 'string', 'max:150'], 'candidate_birth_date' => ['nullable', 'date'], 'candidate_birth_place' => ['nullable', 'string', 'max:150'], 'candidate_id_number' => ['nullable', 'string', 'max:100'], 'candidate_email' => ['nullable', 'email'], 'candidate_phone' => ['nullable', 'string', 'max:40'],
-            'diploma_number' => ['required', 'string', 'max:100'], 'diploma_type' => ['required', 'string', 'max:150'], 'specialty' => ['required', 'string', 'max:150'], 'declared_average' => ['nullable', 'numeric', 'min:0', 'max:20'], 'graduation_year' => ['required', 'integer', 'min:1950', 'max:2100'], 'program' => ['required', 'string', 'max:150'], 'employment_position' => ['required', 'string', 'max:150'], 'employment_reference' => ['nullable', 'string', 'max:100'], 'verification_purpose' => ['required', 'string', 'max:1000'], 'candidate_consent' => ['accepted'],
+            'diploma_number' => ['required', 'string', 'max:100'], 'diploma_type' => ['required', 'string', 'max:150'], 'specialty' => ['required', 'string', 'max:150'], 'declared_average' => ['nullable', 'numeric', 'min:0', 'max:20'], 'graduation_year' => ['required', 'integer', 'min:1950', 'max:2100'], 'program' => ['nullable', 'string', 'max:150'], 'employment_position' => ['required', 'string', 'max:150'], 'employment_reference' => ['nullable', 'string', 'max:100'], 'verification_purpose' => ['required', 'string', 'max:1000'], 'candidate_consent' => ['accepted'],
             'candidate_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'diploma_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'transcript_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'authorization_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ]);
         $data['reference'] = 'REQ-'.now()->format('Y').'-'.str_pad((string) (VerificationRequest::count() + 1), 4, '0', STR_PAD_LEFT);
         $data['diploma_id'] = Diploma::where('number', $data['diploma_number'])->value('id');
         $data['diploma_type'] ??= $data['program'];
         $data['specialty'] ??= $data['program'];
+        $data['program'] ??= $data['specialty'];
         $data['employer_id'] = $user->id; $data['requester_name'] = $user->name; $data['requester_email'] = $user->email; $data['requester_phone'] = $user->company_phone; $data['status'] = 'pending';
         foreach (['candidate_document', 'diploma_document', 'transcript_document', 'authorization_document'] as $file) {
             if ($request->hasFile($file)) $data[str_replace('_document', '_document_path', $file)] = $request->file($file)->store('verification-requests');
