@@ -54,7 +54,7 @@ class AdminWebController extends Controller
             'candidate_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'diploma_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'transcript_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'authorization_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ]);
         $data['reference'] = 'REQ-'.now()->format('Y').'-'.str_pad((string) (VerificationRequest::count() + 1), 4, '0', STR_PAD_LEFT);
-        $data['diploma_id'] = Diploma::where('number', $data['diploma_number'])->value('id');
+        $data['diploma_id'] = $this->findDiplomaByNumber($data['diploma_number'])?->id;
         $data['diploma_type'] ??= $data['program'];
         $data['specialty'] ??= $data['program'];
         $data['program'] ??= $data['specialty'];
@@ -130,9 +130,42 @@ class AdminWebController extends Controller
     public function showRequest(Request $request, VerificationRequest $verificationRequest)
     {
         $this->guard($request);
+        $officialDiploma = $this->findDiplomaByNumber($verificationRequest->diploma_number);
         return view('admin.request-show', [
             'verificationRequest' => $verificationRequest->load(['employer', 'diploma', 'processor']),
+            'officialDiploma' => $officialDiploma,
+            'otherDiplomas' => Diploma::where('holder_name', $verificationRequest->holder_name)->when($officialDiploma, fn ($query) => $query->where('id', '!=', $officialDiploma->id))->latest()->get(),
         ]);
+    }
+
+    public function showDiploma(Request $request, Diploma $diploma)
+    {
+        $this->guard($request);
+
+        return view('admin.diploma-show', [
+            'diploma' => $diploma,
+            'otherDiplomas' => Diploma::where('holder_name', $diploma->holder_name)
+                ->where('id', '!=', $diploma->id)
+                ->latest()
+                ->get(),
+            'verificationRequests' => $diploma->verificationRequests()->with('employer')->latest()->get(),
+        ]);
+    }
+
+    public function updateDiploma(Request $request, Diploma $diploma)
+    {
+        $this->guard($request);
+        $data = $request->validate([
+            'holder_name' => ['required', 'string', 'max:150'],
+            'diploma_type' => ['required', 'string', 'max:150'],
+            'program' => ['required', 'string', 'max:150'],
+            'graduation_year' => ['required', 'integer', 'min:1950', 'max:2100'],
+            'average' => ['nullable', 'numeric', 'min:0', 'max:20'],
+            'mention' => ['nullable', 'string', 'max:100'],
+            'correction_note' => ['required', 'string', 'max:1000'],
+        ]);
+        $diploma->update([...$data, 'specialty' => $data['program'], 'corrected_by' => $request->session()->get('admin_id'), 'corrected_at' => now()]);
+        return back()->with('success', 'La fiche officielle du diplôme a été corrigée et la modification a été journalisée.');
     }
 
     public function registerForm()
@@ -201,7 +234,7 @@ class AdminWebController extends Controller
         $this->guard($request);
         $data = $request->validate(['status' => ['required', 'in:validated,rejected'], 'decision_note' => ['nullable', 'string', 'max:1000']]);
         if ($data['status'] === 'validated') {
-            $matchingDiploma = Diploma::where('number', $verificationRequest->diploma_number)->first();
+            $matchingDiploma = $this->findDiplomaByNumber($verificationRequest->diploma_number);
             if (! $matchingDiploma) {
                 return back()->withErrors(['decision' => 'Validation impossible : aucun diplôme ne correspond exactement au numéro fourni dans la base IAI.'])->withFragment('requests');
             }
@@ -227,5 +260,11 @@ class AdminWebController extends Controller
     {
         $diploma = Diploma::where('qr_token', $token)->first();
         return view('verify', ['diploma' => $diploma]);
+    }
+
+    private function findDiplomaByNumber(?string $number): ?Diploma
+    {
+        if (! filled($number)) return null;
+        return Diploma::whereRaw('UPPER(TRIM(number)) = ?', [strtoupper(trim($number))])->first();
     }
 }

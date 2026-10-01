@@ -19,7 +19,9 @@ Route::get('/admin', [AdminWebController::class, 'dashboard'])->name('admin.dash
 Route::get('/admin/requests/{verificationRequest}', [AdminWebController::class, 'showRequest'])->name('admin.requests.show');
 Route::patch('/admin/requests/{verificationRequest}/decision', [AdminWebController::class, 'decide'])->name('admin.requests.decide');
 Route::get('/admin/requests/{verificationRequest}/documents/{document}', [AdminWebController::class, 'downloadRequestDocument'])->name('admin.requests.document');
+Route::get('/admin/diplomas/{diploma}', [AdminWebController::class, 'showDiploma'])->name('admin.diplomas.show');
 Route::get('/admin/diplomas/{diploma}/documents/{document}', [AdminWebController::class, 'downloadDiplomaDocument'])->name('admin.diplomas.document');
+Route::patch('/admin/diplomas/{diploma}', [AdminWebController::class, 'updateDiploma'])->name('admin.diplomas.update');
 Route::get('/admin/diplomas/{diploma}/documents/{document}', [AdminWebController::class, 'downloadDiplomaDocument'])->name('admin.diplomas.document');
 Route::patch('/admin/employers/{user}/decision', [AdminWebController::class, 'decideEmployer'])->name('admin.employers.decide');
 Route::post('/admin/diplomas', [AdminWebController::class, 'storeDiploma'])->name('admin.diplomas.store');

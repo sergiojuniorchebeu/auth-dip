@@ -5,7 +5,7 @@
 <body class="min-h-screen bg-slate-50 antialiased">
 <div class="flex min-h-screen">
 <aside class="hidden w-72 shrink-0 bg-auth-ink p-6 text-white lg:block">
-<a href="{{ $isAdmin ? route('admin.dashboard') : route('employer.dashboard') }}" class="flex items-center gap-3 text-xl font-bold"><span class="grid h-10 w-10 place-items-center rounded-[10px] bg-auth-blue text-auth-ink">✓</span>AuthDip <span class="text-xs font-medium text-auth-blue">IAI</span></a>
+<a href="{{ $isAdmin ? route('admin.dashboard') : route('employer.dashboard') }}" class="flex items-center gap-3 text-xl font-bold"><img src="{{ asset('images/logo_IAI.jpeg') }}" alt="Logo IAI" class="h-10 w-10 rounded-[5px] bg-white object-contain p-1"><span>AuthDip <span class="text-xs font-medium text-auth-blue">IAI</span></span></a>
 @if($isAdmin)
 <p class="mt-12 px-3 text-xs font-semibold uppercase tracking-[.18em] text-slate-300">Administration</p>
 <nav class="mt-4 space-y-2"><a href="{{ route('admin.dashboard') }}#overview" data-tab="overview" class="side-link">▦ <span>Tableau de bord</span></a><a href="{{ route('admin.dashboard') }}#requests" data-tab="requests" class="side-link">⌁ <span>Demandes</span></a><a href="{{ route('admin.dashboard') }}#diplomas" data-tab="diplomas" class="side-link">▣ <span>Diplômes</span></a><a href="{{ route('admin.dashboard') }}#reports" data-tab="reports" class="side-link">▤ <span>Rapports</span></a><a href="{{ route('admin.dashboard') }}#employers" data-tab="employers" class="side-link">◉ <span>Entreprises</span></a></nav>

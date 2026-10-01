@@ -26,7 +26,7 @@ class VerificationController extends Controller
             'candidate_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'diploma_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'transcript_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], 'authorization_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ]);
         $data['reference'] = 'REQ-'.now()->format('Y').'-'.str_pad((string) (VerificationRequest::count() + 1), 4, '0', STR_PAD_LEFT);
-        $data['diploma_id'] = Diploma::where('number', $data['diploma_number'])->value('id');
+        $data['diploma_id'] = Diploma::whereRaw('UPPER(TRIM(number)) = ?', [strtoupper(trim($data['diploma_number']))])->value('id');
         $data['diploma_type'] ??= $data['program'];
         $data['specialty'] ??= $data['program'];
         $data['employer_id'] = $request->user()->id;
@@ -56,7 +56,7 @@ class VerificationController extends Controller
         abort_unless($request->user()->role === 'admin', 403, 'Accès réservé aux administrateurs.');
         $data = $request->validate(['status' => ['required', 'in:validated,rejected'], 'decision_note' => ['nullable', 'string']]);
         if ($data['status'] === 'validated') {
-            $matchingDiploma = Diploma::where('number', $verificationRequest->diploma_number)->first();
+            $matchingDiploma = Diploma::whereRaw('UPPER(TRIM(number)) = ?', [strtoupper(trim($verificationRequest->diploma_number))])->first();
             if (! $matchingDiploma) {
                 return response()->json(['message' => 'Validation impossible : aucun diplôme ne correspond exactement à ce numéro dans la base IAI.', 'code' => 'DIPLOMA_NUMBER_NOT_FOUND'], 422);
             }
